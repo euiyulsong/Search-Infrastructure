@@ -1,0 +1,40 @@
+body{ font-family:Arial, Helvetica, sans-serif; 
+	background-image: url("https://cdn.nba.net/nba-drupal-prod/2017-08/SEO-image-NBA-logoman.jpg");}
+
+h1 {
+	color: #FFFFFF;
+}
+
+#search {
+	width: 200px;
+	padding: 10px;
+	border-radius:3px;
+	border: 1px solid silver;
+	margin: 0 auto;
+}
+
+#hint {
+	width: 130px;
+	border-radius:3px;
+	border: 1px solid silver;
+	display: inline-block;
+	font-size: 13px;
+	margin: 0 auto;
+		color: #FFFFFF;
+}
+
+.each_name {
+	border: 1px solid silver;
+}
+
+#player {
+	width: 130px;
+	border-radius:5px;
+	padding: 5px;
+	float:left;
+	height: 350px;
+	margin-right: 5px;
+	border: 1px solid silver;
+	background-color: #000000;
+	color: #FFFFFF;
+}

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Online PHP Script Execution</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="my.css">
+
+<body>
+    <script>
+    $("#each_name").onclick = divclick
+
+    function divclick() {
+        console.log("hello");
+    }
+    function showHint() {
+        var str = $('#search_text').val();
+        if (str.length == 0) { 
+            document.getElementById("txtHint").innerHTML = "";
+            return;
+        } else {
+            var xmlhttp = new XMLHttpRequest();
+            xmlhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("txtHint").innerHTML = this.responseText;
+                }
+            };
+            xmlhttp.open("GET", "search.php?text=" + str, true);
+            xmlhttp.send();
+        }
+    }
+/*
+        function theclick() {
+            
+            $.ajax({
+                crossDomain: true,
+                contentType: "application/json; charset=utf-8",
+                url: "database.php?text=" + temp + "&search=search",
+                data: {},
+                dataType: "jsonp",
+                success: function (data) {
+                    console.log(data);
+                }
+            });
+
+
+        }*/
+    </script>
+    <div id="pa2">
+    	<form method="get" action="database.php" id="form2"> 
+    		<input type="text" id="search_text" name="text" placeholder='type your text' onkeyup="showHint(this.value)" autocomplete="off">
+    		<input type="submit" id="button" value="search" name="search" class="search_button" onclick="theclick()">
+    	</form>
+    	<div id='hint'>
+    	<span id="txtHint"></span></div>
+    </div>
+    <div id="pa1" style="display: none;">
+        <form method="get" action="database.php" id="form1"> 
+            <input type="text" id="search_text1" name="text" placeholder='type your text' onkeyup="showHint(this.value)" autocomplete="off">
+            <input type="submit" id="button1" value="search" name="search" class="search_button" >
+            <input type="submit" id="button2" value="search" name="search" class="search_button" >
+            <input type="submit" id="button3" value="search" name="search" class="search_button" >
+
+        </form>
+    </div>
+</body>
+</html>
+

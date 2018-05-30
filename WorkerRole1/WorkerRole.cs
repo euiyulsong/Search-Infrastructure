@@ -9,8 +9,14 @@ using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
-using ClassLibrary;
 using Microsoft.WindowsAzure.Storage.Queue;
+using Microsoft.WindowsAzure.Storage.Table;
+using System.IO;
+using System.Collections.Concurrent;
+using HtmlAgilityPack;
+using System.Xml.Linq;
+using WebCrawlerLibrary;
+using Newtonsoft.Json;
 
 namespace WorkerRole1
 {
@@ -18,52 +24,60 @@ namespace WorkerRole1
     {
         private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         private readonly ManualResetEvent runCompleteEvent = new ManualResetEvent(false);
+
         private static Crawler crawler = new Crawler();
-        private static int linkCount = 0;
+ 
+
         public override void Run()
         {
             Trace.TraceInformation("WorkerRole1 is running");
-            Storage.CreateStorage();
+            Storage.Clear();
+            Storage.Initiate();
+            //Storage.linkQueue.AddMessage(new CloudQueueMessage("http://www.cnn.com/sitemaps/sitemap-profile-2018-02.xml"));
+            //Storage.commandQueue.AddMessage(new CloudQueueMessage("Load"));
+            // TODO: Replace the following with your own logic.
             while (true)
             {
-                CloudQueueMessage command = Storage.CommandQueue.GetMessage(TimeSpan.FromMinutes(5));
-                if (command != null)
+                Thread.Sleep(100);
+                Trace.TraceInformation("Working");
+               CloudQueueMessage commandQueueMessage = Storage.commandQueue.GetMessage(TimeSpan.FromMinutes(5));
+                //string commandQueueMessage = crawler.GetState();
+                if (commandQueueMessage != null)
                 {
-                    switch (command.AsString)
+                    if (commandQueueMessage.AsString == "Load")
+                        //commandQueueMessage.AsString == "Load")
                     {
-                        case "Initialize Crawl":
-                            crawler.Start();
-                            break;
-                        case "Stop Crawl":
-                            crawler.Stop();
-                            crawler.updateDashboard();
-                            break;
-                        case "Resume Crawl":
-                            crawler.Resume();
-                            break;
-                        default:
-                            break;
+                        crawler.Load();
+                        crawler.Crawling();
+                        crawler.ReadHtml();
                     }
-                    Storage.CommandQueue.DeleteMessage(command);
-                }
-                if (crawler.GetCrawlerState().Equals("Crawling") || crawler.GetCrawlerState().Equals("Loading"))
-                {
-                    CloudQueueMessage link = Storage.LinkQueue.GetMessage(TimeSpan.FromMinutes(5));
-                    if (link != null)
+                    else if (commandQueueMessage.AsString == "Crawl")
                     {
-                        linkCount++;
-                        try
-                        {
-                            crawler.CrawlUrl(link.AsString);
-                            Storage.LinkQueue.DeleteMessage(link);
-                        }
-                        catch { }
-                        if (linkCount % 5 == 0)
-                        {
-                            crawler.updateDashboard();
-                        }
+                        crawler.Crawl();
+                        crawler.Crawling();
+                        crawler.ReadHtml();
+                    }
+                    else if (commandQueueMessage.AsString == "Idle")
+                    {
+                        crawler.Idle();
+                    }try
+                    {
+                        Storage.commandQueue.DeleteMessage(commandQueueMessage);
+                    } catch (Exception e)
+                    {
+
                     }
                 }
+                commandQueueMessage = Storage.commandQueue.GetMessage();
+            }
+            
+            try
+            {
+                this.RunAsync(this.cancellationTokenSource.Token).Wait();
+            }
+            finally
+            {
+                this.runCompleteEvent.Set();
             }
         }
 
@@ -101,6 +115,7 @@ namespace WorkerRole1
             {
                 Trace.TraceInformation("Working");
                 await Task.Delay(1000);
+
             }
         }
     }

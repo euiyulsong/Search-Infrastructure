@@ -1,0 +1,260 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Search Infrastructure</title>
+    <link rel="stylesheet" type="text/css" href="crawler.css">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        function theclick() {
+            var temp = $('#search_text').val()
+            $.ajax({
+                type: "GET",
+                url: "http://ec2-18-217-219-250.us-east-2.compute.amazonaws.com/database.php?text=" + temp,
+                contentType: "application/json; charset=utf-8",
+                crossDomain: true,
+                data: {},
+                dataType: "jsonp",
+                success: function (data) {
+                    var output = data;
+                    console.log(output);
+                    var insert = "";
+                    $("#noresult").empty();
+                    var first = temp.split(" ");
+
+                    $("#noresult").append("<img src=\"https://nba-players.herokuapp.com/players/" + first[1] + "/" + first[0] + "\">");
+                    $("#noresult").append("<p> Name:" + output[0] + "</p>");
+                    $("#noresult").append("<p> Team: " + output[1] + "</p>");
+                    $("#noresult").append("<p> GP: " + output[2] + "</p>");
+                    $("#noresult").append("<p> Min: " + output[3] + "</p>");
+                    $("#noresult").append("<p> Pct-FG: " + output[6] + "</p>");
+                    $("#noresult").append("<p> Pct-3PT: " + output[9] + "</p>");
+                    $("#noresult").append("<p> Pct-FT: " + output[10] + "</p>");
+                    $("#noresult").append("<p> Tot-Rb: " + output[15] + "</p>");
+                    $("#noresult").append("<p> PPG: " + output[21] + "</p>");
+                    $("#noresult").append("<p> Ast: " + output[16] + "</p>");
+                },
+                error: function (data) {
+                    $("#noresult").empty();
+                    $("#noresult").append("No Result on NBA Data");
+                }
+            });
+
+            var temp = $('#search_text').val()
+
+            $.ajax({
+                type: "POST",
+                url: "Admin.asmx/GetTitles",
+                data: JSON.stringify({ 'search': temp }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (msg) {
+                    var output = JSON.parse(msg.d);
+                    console.log(output);
+                    if (output.length != 0) {
+                        $("#searchresult").empty();
+                        for (var i = 0; i < output.length; i++) {
+                            $("#searchresult").append("<div class=\"searchresult\">");
+                            $("#searchresult").append("<p> Path: " + output[i].Path + "</p>");
+                            $("#searchresult").append("<p> Title: " + output[i].Title + "</p>");
+                            $("#searchresult").append("<p> Publish Date: " + output[i].PubDate + "</p>");
+                            $("#searchresult").append("</div>");
+                        }
+                    } else {
+                        $("#searchresult").empty();
+
+                        $("#searchresult").append("No Result on Crawled Data");
+
+                    }
+                    console.log("success" + msg);
+                },
+                error: function (msg) {
+                    $("#searchresult").empty();
+
+                    $("#searchresult").append("No Result on Crawled Data");
+
+                }
+            });
+        }
+
+
+
+        function testJson(str) {
+            $('#search').empty();
+            var input = "{word: " + str + "}";
+            console.log("yorih");
+            $.ajax({
+                type: "POST",
+                url: "Search.asmx/Search",
+                data: JSON.stringify({ 'word': str }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (msg) {
+                    var output = JSON.parse(msg.d);
+                    var insert = "";
+                    for (var i = 0; i < output.length; i++) {
+                        insert += "<div>" + output[i];
+                    }
+                    $("#search").append(insert);
+                    console.log("success" + msg);
+                },
+                error: function (msg) {
+                    console.log("fail" + msg);
+                }
+            });
+            console.log("end");
+        }
+
+        function start() {
+
+            $.ajax({
+                type: "POST",
+                url: "Admin.asmx/StartCrawling",
+                data: {},
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                crossDomain: true,
+                success: function (msg) {
+                    var output = JSON.parse(msg.d);
+                    console.log(output);
+                    if (output.length != 0) {
+                        $("#dashboardresult").empty();
+                        $("#dashboardresult").append("<div class=\"dashboard\">");
+                        $("#dashboardresult").append("<p> State: " + output[0].state + "</p>");
+                        $("#dashboardresult").append("<p> Cpu: " + output[0].cpu + "</p>");
+                        $("#dashboardresult").append("<p> Ram: " + output[0].ram + "</p>");
+                        $("#dashboardresult").append("<p> Url Crawled: " + output[0].countUrl + "</p>");
+                        $("#dashboardresult").append("<p> Last Url: " + output[0].lastUrl + "</p>");
+                        $("#dashboardresult").append("<p> Size of Queue: " + output[0].sizeQueue + "</p>");
+                        $("#dashboardresult").append("<p> Size of Index: " + output[0].sizeIndex + "</p>");
+                        $("#dashboardresult").append("<p> Error: " + output[0].error + "</p>");
+                        $("#dashboardresult").append("<p> Error Url: " + output[0].errorUrl + "</p>");
+
+
+
+                        $("#dashboardresult").append("</div>");
+                    } else {
+                        $("#dashboardresult").empty();
+
+                        $("#dashboardresult").append("No Result on Crawled Data");
+
+                    }
+                    console.log("success" + msg);
+                },
+                error: function (data) {
+                    console.log(data);
+                }
+            });
+        }
+
+        function clear() {
+
+            $.ajax({
+                type: "POST",
+                url: "Admin.asmx/ClearCrawling",
+                data: {},
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                crossDomain: true,
+                success: function (msg) {
+                    var output = JSON.parse(msg.d);
+                    console.log(output);
+                    if (output.length != 0) {
+                        $("#dashboardresult").empty();
+                        $("#dashboardresult").append("<div class=\"dashboard\">");
+                        $("#dashboardresult").append("<p> State: " + output[0].state + "</p>");
+                        $("#dashboardresult").append("<p> Cpu: " + output[0].cpu + "</p>");
+                        $("#dashboardresult").append("<p> Ram: " + output[0].ram + "</p>");
+                        $("#dashboardresult").append("<p> Url Crawled: " + output[0].countUrl + "</p>");
+                        $("#dashboardresult").append("<p> Last Url: " + output[0].lastUrl + "</p>");
+                        $("#dashboardresult").append("<p> Size of Queue: " + output[0].sizeQueue + "</p>");
+                        $("#dashboardresult").append("<p> Size of Index: " + output[0].sizeIndex + "</p>");
+                        $("#dashboardresult").append("<p> Error: " + output[0].error + "</p>");
+                        $("#dashboardresult").append("<p> Error Url: " + output[0].errorUrl + "</p>");
+
+
+
+                        $("#dashboardresult").append("</div>");
+                    } else {
+                        $("#dashboardresult").empty();
+
+                        $("#dashboardresult").append("No Result on Crawled Data");
+
+                    }
+                    console.log("success" + msg);
+                },
+                error: function (data) {
+                    console.log(data);
+                }
+            });
+        }
+
+        function stop() {
+
+            $.ajax({
+                type: "POST",
+                url: "Admin.asmx/StopCrawling",
+                data: {},
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                crossDomain: true,
+                success: function (msg) {
+                    console.log(msg);
+                },
+                error: function (data) {
+                    console.log(data);
+                }
+            });
+        }
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>    (adsbygoogle = window.adsbygoogle || []).push({ google_ad_client: "ca-pub-5666480866743556", enable_page_level_ads: true });</script>
+</head>
+<body>
+    <!-- side용 -->
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-5666480866743556"
+         data-ad-slot="3555176220"
+         data-ad-format="auto"></ins>
+
+    <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    <h1> EuiYul's Search Infrastructure </h1>
+    <div id="pa2" onsubmit="event.preventDefault(); theclick()">
+        <form id="form2">
+            <input type="text" id="search_text" name="text" placeholder='type your text' autocomplete="off">
+            <input type="submit" id="button" value="search" name="search" class="search_button">
+        </form>
+        <div id="search"></div>
+    </div>
+
+
+    <div id="pa4">
+        <input type="submit" id="start" value="start" name="start" class="search_button" onclick="start()">
+        <input type="submit" id="clear" value="clear" name="clear" class="search_button" onclick="clear()">
+        <input type="submit" id="stop" value="stop" name="stop" class="search_button" onclick="stop()">
+    </div>
+
+    <div id="dashboard">
+        <h2>Dashboard</h2>
+        <div id="dashboardresult">Press Start to See Dashboard Result</div>
+    </div>
+    <div id="nba">
+        <h2>NBA Player</h2>
+        <div id="noresult">No Result on NBA Data</div>
+    </div>
+    <div id="result">
+        <h2>Search Result</h2>
+        <div id="searchresult">No Result on Web Crawling Data</div>
+
+    </div>
+
+
+</body>
+</html>
+
